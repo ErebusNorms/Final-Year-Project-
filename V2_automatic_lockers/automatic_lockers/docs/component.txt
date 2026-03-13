@@ -1,0 +1,95 @@
+1. Khởi tạo và cấu hình hệ thống
+Sử dụng Flask làm web framework.
+
+Sử dụng facenet_pytorch với MTCNN và InceptionResnetV1 để phát hiện và nhận diện khuôn mặt.
+
+facenet_pytorch với MTCNN và InceptionResnetV1
+
+thư viện facenet_pytorch đóng vai trò chính trong hai bước quan trọng:
+    -Phát hiện và định vị khuôn mặt (Face Detection & Alignment) bằng MTCNN
+    -Trích xuất đặc trưng (feature embedding) của khuôn mặt bằng InceptionResnetV1
+MTCNN dùng để xác định vị trí, cắt và căn chỉnh khuôn mặt trong ảnh.
+InceptionResnetV1 dùng để biến mặt đã crop thành vector 512 chiều, dùng để so sánh, nhận dạng.
+
+a, MTCNN – Multi-task Cascaded Convolutional Neural Networks
+    Chức năng:
+
+        Phát hiện các khuôn mặt trong ảnh, xác định vị trí bằng các bounding box.
+
+        Phát hiện các điểm đặc trưng trên mặt như mắt, mũi, miệng.
+
+    Các tham số chính:
+
+        image_size: Kích thước ảnh mặt sau khi crop, thường để 160x160 qua bước crop.
+
+        min_face_size: Kích thước nhỏ nhất của khuôn mặt để bắt đầu detection, giúp loại bỏ ảnh mặt quá nhỏ.
+
+        thresholds: Mảng các ngưỡng confidence của 3 tầng mạng trong pipeline, quyết định mức độ phát hiện chính xác.
+
+        factor: Tỉ lệ giảm kích thước ảnh qua từng level của pyramid, ảnh hưởng tốc độ và độ chính xác.
+
+        keep_all: Nếu là False, chỉ lấy mặt lớn nhất; nếu True, lấy tất cả các mặt trong ảnh.
+
+    Vai trò: đảm bảo lấy đúng vị trí, chuẩn xác để trích xuất đặc trưng ở bước tiếp theo.
+
+b. InceptionResnetV1 – Trích xuất đặc trưng khuôn mặt (Face Embedding)
+    Chức năng:
+
+        Nhận mặt đã crop, qua đó tạo ra vector đặc trưng (feature vector) kích thước 512 chiều.
+
+        Được huấn luyện trên tập dữ liệu lớn như VGGFace2, giúp phân biệt các khuôn mặt khác nhau.
+
+    Các tham số chính:
+
+        pretrained='vggface2': để tải mô hình đã huấn luyện sẵn trên bộ dữ liệu này.
+
+        eval(): đặt mô hình về chế độ đánh giá để không cập nhật trọng số.
+
+Sử dụng SQLite để lưu trữ thông tin người dùng, tủ locker và lịch sử truy cập.
+
+Lưu database trong file data/face.db; tự động tạo thư mục data nếu chưa tồn tại.
+
+2. Database
+Ba bảng chính:
+
+faces: lưu username, embedding khuôn mặt dạng JSON, thời gian tạo.
+
+lockers: quản lý tủ locker với trạng thái (sử dụng/trống), thời gian check in/out.
+
+access_logs: ghi lại các thao tác đăng ký, trả tủ tự động, xóa user, với độ tin cậy confidence.
+
+Hàm khởi tạo init_db tạo bảng và thêm cột nếu thiếu (migration đơn giản).
+
+3. Xử lý nhận diện khuôn mặt
+Hàm gen_frames lấy ảnh từ camera rồi phát hiện khuôn mặt.
+
+Tính embedding khuôn mặt mới, so sánh với embedding trong cache database để xác định người.
+
+Nếu nhận diện đúng và đủ độ tin cậy, gọi auto_checkout tự động trả tủ.
+
+Tối ưu cache embeddings chạy lại mỗi 2 giây.
+
+4. Các route API quan trọng
+/ trả về giao diện web (HTML index.html).
+
+/video_feed trả video stream nhận diện khuôn mặt.
+
+/set_stream_status bật/tắt streaming camera.
+
+/register_locker đăng ký người dùng với tủ locker và lưu embedding khuôn mặt.
+
+/list_lockers trả danh sách trạng thái các tủ.
+
+/list_customers trả danh sách khách hàng và trạng thái tủ của họ.
+
+/delete_user xóa user khỏi database và trả lại tủ.
+
+/manual_checkout trả tủ thủ công theo mã tủ.
+
+/statistics trả thống kê tổng quan về người dùng, tủ, và logs truy cập.
+
+/export_logs xuất dữ liệu logs ra CSV theo bộ lọc thời gian.
+
+/init_lockers khởi tạo 16 tủ trong lưới 4x4 (A1-D4).
+
+/get_locker_grid trả trạng thái các tủ theo lưới 4x4.
