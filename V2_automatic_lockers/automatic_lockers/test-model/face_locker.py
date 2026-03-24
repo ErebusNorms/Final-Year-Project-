@@ -13,7 +13,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 print("Device:", device)
 
 # YOLO face model
-yolo = YOLO("yolov12n-face.pt")
+yolo = YOLO("model/yolov12n-face.pt")
 yolo.to(device)
 
 # FaceNet
@@ -156,7 +156,7 @@ def checkout(face_emb):
 # Camera
 # ===============================
 
-cap = cv2.VideoCapture(1, cv2.CAP_DSHOW)
+cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 cap.set(3,640)
 cap.set(4,480)
 

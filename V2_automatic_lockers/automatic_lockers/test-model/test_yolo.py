@@ -15,7 +15,7 @@ else:
     print("CUDA not available - Using CPU")
 
 # Load model
-model_path = 'yolov12n-face.pt'
+model_path = 'model/yolov12n-face.pt'
 model_name = 'v12n-face'
 print("Loading YOLO model...")
 
@@ -25,7 +25,7 @@ yolo_model.to(device)
 print("Model loaded successfully!")
 
 # Mở webcam
-cap = cv2.VideoCapture(1, cv2.CAP_DSHOW)  # đổi thành 0 nếu dùng webcam laptop
+cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)  # đổi thành 0 nếu dùng webcam laptop
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 cap.set(cv2.CAP_PROP_FPS, 60)
